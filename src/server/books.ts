@@ -40,7 +40,9 @@ export async function getBooks (
 
 export async function getBookById (id: string): Promise<GetBookResponseT> {
   try {
-    const res = await fetch(`${process.env.API_URL}/api/books/${id}`)
+    const res = await fetch(`${process.env.API_URL}/api/books/${id}`, {
+      next: { tags: [`books${id}`] }
+    })
 
     if (!res.ok) {
       throw new Error('Failed to fetch book')

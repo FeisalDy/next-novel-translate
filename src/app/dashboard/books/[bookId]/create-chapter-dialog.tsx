@@ -1,5 +1,4 @@
 'use client'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,11 +21,9 @@ import {
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { createChapter } from '@/server/chapters'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Dropzone, FileMosaic } from '@files-ui/react'
-import { toast } from 'sonner'
 import { useState } from 'react'
+import { useCreateChapter } from '@/hooks/chapters/useCreateChapter'
 
 const formSchema = z.object({
   bookId: z.string(),
@@ -39,7 +36,6 @@ interface CreateChapterDialogProps {
 
 export function CreateChapterDialog ({ bookId }: CreateChapterDialogProps) {
   const [open, setOpen] = useState(false)
-  const queryClient = useQueryClient()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,22 +46,10 @@ export function CreateChapterDialog ({ bookId }: CreateChapterDialogProps) {
   })
 
   const {
-    mutate: server_createChapters,
+    mutateAsync: server_createChapters,
     isPending,
     isSuccess
-  } = useMutation<FormData, unknown, FormData>({
-    mutationFn: FormData => createChapter(FormData),
-    onSuccess: () => {
-      toast('Chapters has been created.')
-      queryClient.invalidateQueries({ queryKey: ['book', bookId] })
-    },
-    onError: error => {
-      toast("Couldn't create chapters. Please try again.")
-    },
-    onSettled: () => {
-      setOpen(false)
-    }
-  })
+  } = useCreateChapter(bookId)
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -73,9 +57,8 @@ export function CreateChapterDialog ({ bookId }: CreateChapterDialogProps) {
       formData.append('bookId', bookId)
       formData.append('file', values.file)
 
-      server_createChapters(formData)
-      //   console.log(bookId)
-      //   console.log(values.file)
+      await server_createChapters(formData)
+      setOpen(false)
     } catch (error) {
       console.error('Error submitting form:', error)
     }
@@ -100,7 +83,7 @@ export function CreateChapterDialog ({ bookId }: CreateChapterDialogProps) {
         <DialogHeader>
           <DialogTitle>Create new chapters</DialogTitle>
           <DialogDescription>
-            Anyone who has this link will be able to view this.
+            Make sure the file follow the txt format here.
           </DialogDescription>
         </DialogHeader>
         <div className='flex items-center space-x-2'>
@@ -134,7 +117,6 @@ export function CreateChapterDialog ({ bookId }: CreateChapterDialogProps) {
                           />
                         )}
                       </Dropzone>
-                      {/* <Input placeholder='Book title' {...field} /> */}
                     </FormControl>
                     <FormMessage />
                   </FormItem>

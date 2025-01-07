@@ -3,6 +3,7 @@ import {
   GetChapterResponseT,
   DeleteChapterByBookIdResponseT
 } from '@/types/chapters-type'
+import { revalidateTag } from 'next/cache'
 
 export async function getChapter (
   //   id?: string,
@@ -33,26 +34,15 @@ export async function getChapter (
 }
 
 export async function createChapter (data: any): Promise<any> {
-  //   const apiUrl = 'http://localhost:3000'
-
-  //   if (!apiUrl) {
-  //     console.error('API_URL is not defined')
-  //     return {
-  //       message: 'API_URL is missing in the environment variables'
-  //     }
-  //   }
-
   try {
     const res = await fetch(`${process.env.API_URL}/api/chapters`, {
       method: 'POST',
       body: data
     })
-    // const res = await fetch(`${apiUrl}/api/chapters`, {
-    //   method: 'POST',
-    //   body: data
-    // })
 
     const result = await res.json()
+
+    revalidateTag(`books${data.get('bookId')}`)
     return result
   } catch (error) {
     return {
@@ -73,6 +63,8 @@ export async function deleteChaptersByBookId (
     )
 
     const result = await res.json()
+    revalidateTag(`books${bookId}`)
+
     return result
   } catch (error) {
     return {

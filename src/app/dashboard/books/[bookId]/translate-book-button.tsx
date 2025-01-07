@@ -1,13 +1,10 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { translateBookChapters } from '@/server/translate'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -30,45 +27,24 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
+import useTranslateBookById from '@/hooks/translate/useTranslateBookById'
 
-export default function TranslateButton ({ bookId }: { bookId: string }) {
-  const bookIdInt = parseInt(bookId)
-  const queryClient = useQueryClient()
+export default function TranslateBookByIdButton ({ id }: { id: string }) {
+  const idInt = parseInt(id)
 
-  const [sourceLang, setSourceLang] = React.useState('')
-  const [targetLang, setTargetLang] = React.useState('')
+  const [sourceLang, setSourceLang] = React.useState('zh-CN')
+  const [targetLang, setTargetLang] = React.useState('en')
   const [sourceOpen, setSourceOpen] = React.useState(false)
   const [targetOpen, setTargetOpen] = React.useState(false)
   const [dialogOpen, setDialogOpen] = React.useState(false)
 
   const {
-    mutate: server_translateBookChapters,
+    mutateAsync: server_translateBookById,
     isPending,
     isSuccess
-  } = useMutation({
-    mutationFn: ({
-      bookIdInt,
-      source_lang,
-      target_lang
-    }: {
-      bookIdInt: number
-      source_lang: string
-      target_lang: string
-    }) => translateBookChapters(bookIdInt, source_lang, target_lang),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['book', bookId] })
-      toast.success('Chapters translated successfully')
-    },
-    onError: error => {
-      toast.error('Error translating chapters')
-      console.error('Error translating book chapters:', error)
-    },
-    onSettled: () => {
-      setDialogOpen(false)
-    }
-  })
+  } = useTranslateBookById()
 
-  const handleTranslateChapters = () => {
+  const handleTranslateBookById = async () => {
     if (!sourceLang || !targetLang) {
       toast.error('Please select both source and target languages.')
       return
@@ -79,11 +55,16 @@ export default function TranslateButton ({ bookId }: { bookId: string }) {
       return
     }
 
-    server_translateBookChapters({
-      bookIdInt,
-      source_lang: sourceLang,
-      target_lang: targetLang
-    })
+    try {
+      await server_translateBookById({
+        idInt,
+        source_lang: sourceLang,
+        target_lang: targetLang
+      })
+      setDialogOpen(false)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const langs = langList
@@ -92,7 +73,9 @@ export default function TranslateButton ({ bookId }: { bookId: string }) {
     <>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button>Open Translate Dialog</Button>
+          <Button variant='secondary' disabled={isPending}>
+            Translate Book
+          </Button>
         </DialogTrigger>
         <DialogContent className=''>
           <DialogHeader>
@@ -108,10 +91,9 @@ export default function TranslateButton ({ bookId }: { bookId: string }) {
                   aria-expanded={sourceOpen}
                   className='justify-between'
                 >
-                  {/* {sourceLang
-                    ? langs.find(lang => lang.value === sourceLang)?.label
-                    : 'Select Source Language'} */}
-                  {sourceLang || 'Select Source Language'}
+                  {sourceLang === 'zh-CN'
+                    ? 'Chinese (Simplified)'
+                    : sourceLang || 'Select Source Language'}
                   <ChevronsUpDown className='opacity-50' />
                 </Button>
               </PopoverTrigger>
@@ -158,10 +140,9 @@ export default function TranslateButton ({ bookId }: { bookId: string }) {
                   aria-expanded={targetOpen}
                   className='justify-between'
                 >
-                  {/* {targetLang
-                    ? langs.find(lang => lang.value === targetLang)?.label
-                    : 'Select Target Language'} */}
-                  {targetLang || 'Select Target Language'}
+                  {targetLang === 'en'
+                    ? 'English'
+                    : targetLang || 'Select Target Language'}
                   <ChevronsUpDown className='opacity-50' />
                 </Button>
               </PopoverTrigger>
@@ -199,9 +180,8 @@ export default function TranslateButton ({ bookId }: { bookId: string }) {
               </PopoverContent>
             </Popover>
 
-            {/* Translate Button */}
-            <Button onClick={handleTranslateChapters} disabled={isPending}>
-              {isPending ? 'Translating...' : 'Translate Chapters'}
+            <Button onClick={handleTranslateBookById} disabled={isPending}>
+              {isPending ? 'Translating...' : 'Translate Book'}
             </Button>
           </div>
         </DialogContent>

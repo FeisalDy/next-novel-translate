@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { set, z } from 'zod'
+import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -15,10 +15,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Cropper from 'react-easy-crop'
-import { updateBookById, createBook } from '@/server/books'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { redirect } from 'next/navigation'
+import { useUpdateBookById } from '@/hooks/books/useUpdateBookById'
+import { useCreateBook } from '@/hooks/books/useCreateBook'
 
 type BookFormProps = {
   mode: 'create' | 'edit'
@@ -59,8 +58,7 @@ const formSchema = z.object({
   title: z.string().nonempty(),
   author: z.string().nonempty(),
   description: z.string().nonempty(),
-  //   wordCount: z.string(), // Change to z.number()
-  wordCount: z.union([z.string(), z.number()]), // Accept both string and number
+  wordCount: z.union([z.string(), z.number()]),
   tags: z.string().optional()
 })
 
@@ -110,7 +108,7 @@ async function getCroppedImg (
 
 const BookForm: React.FC<BookFormProps> = ({ mode, initialValues = {} }) => {
   const [crop, setCrop] = React.useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = React.useState(1)
+  const [zoom, setZoom] = React.useState(1.01)
   const [croppedAreaPixels, setCroppedAreaPixels] = React.useState<any>(null)
   const [imageSrc, setImageSrc] = React.useState<string | null>(
     (initialValues.cover as unknown as string) || null
@@ -118,7 +116,6 @@ const BookForm: React.FC<BookFormProps> = ({ mode, initialValues = {} }) => {
 
   const form = useForm<BookFormValues>({
     resolver: zodResolver(formSchema),
-    // defaultValues: initialValues
     defaultValues: {
       id: initialValues.id || 0,
       cover: initialValues.cover || null,
@@ -156,7 +153,6 @@ const BookForm: React.FC<BookFormProps> = ({ mode, initialValues = {} }) => {
   const handleSubmit = async (values: BookFormValues) => {
     const dataToSend: Partial<BookFormValues> = {}
 
-    // Include only modified values
     Object.keys(values).forEach(key => {
       if (
         values[key as keyof BookFormValues] !==
@@ -168,10 +164,8 @@ const BookForm: React.FC<BookFormProps> = ({ mode, initialValues = {} }) => {
       }
     })
 
-    // Add cropped image if applicable
     if (imageSrc && croppedAreaPixels && imageSrc !== initialValues.cover) {
       const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels)
-      //   dataToSend.file = croppedFile
       dataToSend.cover = croppedFile
       delete dataToSend.file
     }
@@ -179,20 +173,17 @@ const BookForm: React.FC<BookFormProps> = ({ mode, initialValues = {} }) => {
     const formData = new FormData()
     Object.entries(dataToSend).forEach(([key, value]) => {
       if (value instanceof File) {
-        formData.append(key, value) // Append file as form data
+        formData.append(key, value)
       } else if (value !== undefined && value !== null) {
-        formData.append(key, value.toString()) // Append other fields as strings
+        formData.append(key, value.toString())
       }
     })
 
-    // onSubmit(dataToSend)
     onSubmit(formData)
   }
 
   const handleClear = () => {
-    // setImageSrc(initialValues.cover as string)
     setImageSrc('')
-    // form.reset()
   }
 
   const onSubmit = async (formData: FormData) => {
@@ -208,33 +199,14 @@ const BookForm: React.FC<BookFormProps> = ({ mode, initialValues = {} }) => {
     mutate: server_createBook,
     isPending: createBookPending,
     isSuccess: createBookSuccess
-  } = useMutation<FormData, unknown, FormData>({
-    mutationFn: formData => createBook(formData),
-    onSuccess: () => {
-      toast('Book has been created.')
-    },
-    onError: error => {
-      console.error('Error creating book:', error)
-      toast("Couldn't create book. Please try again.")
-    }
-  })
+  } = useCreateBook()
 
   const {
     data: res_updateBook,
     mutate: server_updateBook,
     isPending: updateBookPending,
     isSuccess: updateBookSuccess
-  } = useMutation({
-    mutationFn: ({ formData, id }: { formData: FormData; id: number }) =>
-      updateBookById(id, formData),
-    onSuccess: () => {
-      toast('Book has been updated.')
-    },
-    onError: error => {
-      console.error('Error updating book:', error)
-      toast("Couldn't update book. Please try again.")
-    }
-  })
+  } = useUpdateBookById()
 
   if (updateBookSuccess || createBookSuccess) {
     redirect('/dashboard/books')

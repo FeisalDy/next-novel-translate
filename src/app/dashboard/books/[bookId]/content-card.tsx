@@ -1,27 +1,20 @@
-'use client'
 import Image from 'next/image'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { getBookById } from '@/server/books'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
-
+import { isImageUrlValid } from '@/lib/isImageUrlValid'
 interface CreateChapterDialogProps {
   bookId: string
 }
-export default function ContentCard ({ bookId }: CreateChapterDialogProps) {
-  const queryClient = useQueryClient()
-
-  const { data: raw_data, isPending } = useQuery({
-    queryKey: ['book', bookId],
-    queryFn: () => getBookById(bookId)
-  })
-
-  const data = raw_data?.data
+export default async function ContentCard ({
+  bookId
+}: CreateChapterDialogProps) {
+  const { data } = await getBookById(bookId)
 
   function capitalizeSentences (text: string): string {
     return text
-      .replace(/\r\n/g, '<br />') // Replace line breaks
+      .replace(/\r\n/g, '<br />')
       .replace(/(^|\.|\?|\!)\s*(<br \/>)?\s*([a-z])/g, (_, p1, p2, p3) => {
         return `${p1}${p2 || ''} ${p3.toUpperCase()}`
       })
@@ -34,7 +27,11 @@ export default function ContentCard ({ bookId }: CreateChapterDialogProps) {
         <CardContent className=''>
           <div>
             <Image
-              src={data?.cover ?? '/3x4-placeholder.jpg'}
+              src={
+                data?.cover && isImageUrlValid(data?.cover)
+                  ? data?.cover
+                  : '/3x4-placeholder.jpg'
+              }
               height={200}
               width={150}
               alt={data?.title ?? 'Book cover'}

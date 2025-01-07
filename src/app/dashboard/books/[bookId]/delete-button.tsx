@@ -1,9 +1,5 @@
 'use client'
-
 import { Button } from '@/components/ui/button'
-import { deleteChaptersByBookId } from '@/server/chapters'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,24 +11,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import { useDeleteChaptersByBookId } from '@/hooks/chapters/useDeleteChapterByBookId'
 
 export default function DeleteButton ({ bookId }: { bookId: string }) {
-  const queryClient = useQueryClient()
-
   const {
     mutate: server_DeleteChapters,
     isPending,
     isSuccess
-  } = useMutation({
-    mutationFn: (bookId: string) => deleteChaptersByBookId(bookId),
-    onSuccess: () => {
-      toast('Chapters has been deleted.')
-      queryClient.invalidateQueries({ queryKey: ['book', bookId] })
-    },
-    onError: () => {
-      toast('Failed to delete chapters.')
-    }
-  })
+  } = useDeleteChaptersByBookId(bookId)
 
   const handleDeleteChaptersButton = async () => {
     server_DeleteChapters(bookId)
@@ -40,7 +26,6 @@ export default function DeleteButton ({ bookId }: { bookId: string }) {
 
   return (
     <>
-      {/* <Button onClick={handleDeleteChaptersButton}>Delete Chapters</Button> */}
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant='destructive'>Delete Chapters</Button>

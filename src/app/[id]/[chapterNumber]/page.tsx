@@ -9,15 +9,11 @@ export default async function BookPage ({
 }) {
   const { chapterNumber, id } = await params
   const { data, message } = await getChapter(Number(id), Number(chapterNumber))
-  //   console.log(data)
 
   return (
     <div className='prose-base p-[22px] md:prose-base'>
       <h1 className='capitalize'>{data?.chapterTitle}</h1>
       <div>
-        {/* {data?.content.split('\n').map((line, index) => (
-          <p key={index}>{line}</p>
-        ))} */}
         {data?.content.split('\n').map((line, index) => {
           const isDialogue =
             line.trim().startsWith('"') && line.trim().endsWith('"')
