@@ -1,8 +1,5 @@
-import { CreateChapterDialog } from './create-chapter-dialog'
-import TranslateButton from './translate-chapters-button'
-import ContentCard from './content-card'
-import DeleteButton from './delete-button'
-import TranslateBookByIdButton from './translate-book-button'
+import ContentCard from '@/components/book/book-content-card'
+import MenuDialog from '@/app/dashboard/books/[bookId]/menu-dialog'
 
 export default async function BookPage ({
   params
@@ -12,14 +9,8 @@ export default async function BookPage ({
   const { bookId } = await params
 
   return (
-    <div className='p-4'>
-      <div className='flex justify-end mb-4 gap-4'>
-        <DeleteButton bookId={bookId} />
-        <TranslateBookByIdButton id={bookId} />
-        <TranslateButton bookId={bookId} />
-        <CreateChapterDialog bookId={bookId} />
-      </div>
-
+    <div className='p-4 relative'>
+      <MenuDialog bookId={bookId} />
       <ContentCard bookId={bookId} />
     </div>
   )

@@ -9,15 +9,16 @@ import {
 export async function getBooks (
   query: GetBooksQueryT
 ): Promise<GetBooksResponseT> {
-  const { page = '1', limit = '10', ...rest } = query
+  const url = new URL(`${process.env.API_URL}/api/books`)
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value) {
+      url.searchParams.append(key, value)
+    }
+  })
+
   try {
-    const res = await fetch(
-      `${
-        process.env.API_URL
-      }/api/books?page=${page}&limit=${limit}&${new URLSearchParams(
-        rest
-      ).toString()}`
-    )
+    const res = await fetch(url.toString())
 
     if (!res.ok) {
       throw new Error('Failed to fetch books')

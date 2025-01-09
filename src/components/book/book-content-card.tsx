@@ -4,6 +4,8 @@ import { getBookById } from '@/server/books'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { isImageUrlValid } from '@/lib/isImageUrlValid'
+import { capitalizeSentences } from '@/lib/capitalizeSentence'
+
 interface CreateChapterDialogProps {
   bookId: string
 }
@@ -12,36 +14,31 @@ export default async function ContentCard ({
 }: CreateChapterDialogProps) {
   const { data } = await getBookById(bookId)
 
-  function capitalizeSentences (text: string): string {
-    return text
-      .replace(/\r\n/g, '<br />')
-      .replace(/(^|\.|\?|\!)\s*(<br \/>)?\s*([a-z])/g, (_, p1, p2, p3) => {
-        return `${p1}${p2 || ''} ${p3.toUpperCase()}`
-      })
-      .trim()
-  }
-
   return (
     <>
       <Card className='prose-base'>
-        <CardContent className=''>
-          <div>
+        <CardContent className='grid gap-y-6'>
+          <div className='aspect-[3/4] relative sm:max-w-[300px] sm:max-h-[400px]'>
             <Image
               src={
                 data?.cover && isImageUrlValid(data?.cover)
                   ? data?.cover
                   : '/3x4-placeholder.jpg'
               }
-              height={200}
-              width={150}
+              fill
               alt={data?.title ?? 'Book cover'}
+              objectFit='cover'
+              className='rounded-sm'
             />
           </div>
+
           <div>
             {data?.title && <h3 className='capitalize'>Title: {data.title}</h3>}
-            {data?.author && <p>Author: {data.author}</p>}
+            {data?.author && (
+              <p className='text-gray-500'>Author: {data.author}</p>
+            )}
             {data?.description && (
-              <p>
+              <p className='text-justify'>
                 Description:
                 <br />
                 <span
@@ -53,15 +50,15 @@ export default async function ContentCard ({
             )}
           </div>
           <Separator />
-          <ul className='grid md:grid-cols-2 gap-2'>
+
+          <ul className='grid md:grid-cols-2 gap-2 p-0'>
             {data?.chapters &&
               data?.chapters
                 .sort((a, b) => a.chapterNumber - b.chapterNumber)
                 .map(chapter => (
                   <Link
                     key={chapter.id}
-                    href={`/${data.id}/${chapter.chapterNumber}`}
-                    passHref
+                    href={`/books/${data.id}/${chapter.chapterNumber}`}
                   >
                     <li className='capitalize cursor-pointer hover:underline'>
                       {chapter.chapterNumber} - {chapter.chapterTitle}

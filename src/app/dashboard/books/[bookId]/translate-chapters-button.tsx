@@ -29,7 +29,14 @@ import {
 } from '@/components/ui/popover'
 import useTranslateChapterByBookId from '@/hooks/translate/useTranslateChapterByBookId'
 
-export default function TranslateButton ({ bookId }: { bookId: string }) {
+type TranslateButtonPropsT = {
+  bookId: string
+  className?: string
+}
+export default function TranslateButton ({
+  bookId,
+  className
+}: TranslateButtonPropsT) {
   const bookIdInt = parseInt(bookId)
 
   const [sourceLang, setSourceLang] = React.useState('zh-CN')
@@ -74,7 +81,11 @@ export default function TranslateButton ({ bookId }: { bookId: string }) {
     <>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant='secondary' disabled={isPending}>
+          <Button
+            variant='secondary'
+            disabled={isPending}
+            className={cn('', className)}
+          >
             Translate Chapters
           </Button>
         </DialogTrigger>

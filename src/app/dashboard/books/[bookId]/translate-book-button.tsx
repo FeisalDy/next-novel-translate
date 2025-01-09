@@ -28,8 +28,18 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 import useTranslateBookById from '@/hooks/translate/useTranslateBookById'
+import useTranslateChapterByBookId from '@/hooks/translate/useTranslateChapterByBookId'
 
-export default function TranslateBookByIdButton ({ id }: { id: string }) {
+type TranslateBookByIdButtonPropsT = {
+  id: string
+  className?: string
+  setMenuDialogOpen: (open: boolean) => void
+}
+export default function TranslateBookByIdButton ({
+  id,
+  className,
+  setMenuDialogOpen
+}: TranslateBookByIdButtonPropsT) {
   const idInt = parseInt(id)
 
   const [sourceLang, setSourceLang] = React.useState('zh-CN')
@@ -40,9 +50,15 @@ export default function TranslateBookByIdButton ({ id }: { id: string }) {
 
   const {
     mutateAsync: server_translateBookById,
-    isPending,
-    isSuccess
+    isPending: isPendingBook,
+    isSuccess: isSuccessBook
   } = useTranslateBookById()
+
+  const {
+    mutateAsync: server_translateBookChapters,
+    isPending: isPendingChapters,
+    isSuccess: isSuccessChapters
+  } = useTranslateChapterByBookId()
 
   const handleTranslateBookById = async () => {
     if (!sourceLang || !targetLang) {
@@ -61,7 +77,14 @@ export default function TranslateBookByIdButton ({ id }: { id: string }) {
         source_lang: sourceLang,
         target_lang: targetLang
       })
+
+      await server_translateBookChapters({
+        bookIdInt: idInt,
+        source_lang: sourceLang,
+        target_lang: targetLang
+      })
       setDialogOpen(false)
+      setMenuDialogOpen(false)
     } catch (error) {
       console.error(error)
     }
@@ -73,8 +96,12 @@ export default function TranslateBookByIdButton ({ id }: { id: string }) {
     <>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant='secondary' disabled={isPending}>
-            Translate Book
+          <Button
+            variant='secondary'
+            disabled={isPendingChapters}
+            className={cn('', className)}
+          >
+            Translate Book and Chapters
           </Button>
         </DialogTrigger>
         <DialogContent className=''>
@@ -180,8 +207,13 @@ export default function TranslateBookByIdButton ({ id }: { id: string }) {
               </PopoverContent>
             </Popover>
 
-            <Button onClick={handleTranslateBookById} disabled={isPending}>
-              {isPending ? 'Translating...' : 'Translate Book'}
+            <Button
+              onClick={handleTranslateBookById}
+              disabled={isPendingChapters || isPendingBook}
+            >
+              {isPendingChapters || isPendingBook
+                ? 'Translating...'
+                : 'Translate Book and Chapters'}
             </Button>
           </div>
         </DialogContent>

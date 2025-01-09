@@ -22,13 +22,13 @@ export default function BreadCrumbComponent () {
 
           return (
             <React.Fragment key={href}>
-              <BreadcrumbItem>
+              <BreadcrumbItem key={href}>
                 {isLast ? (
                   <span>
                     {segment.charAt(0).toUpperCase() + segment.slice(1)}
                   </span>
                 ) : (
-                  <BreadcrumbLink href={href}>
+                  <BreadcrumbLink href={href} key={href}>
                     {segment.charAt(0).toUpperCase() + segment.slice(1)}
                   </BreadcrumbLink>
                 )}

@@ -1,10 +1,9 @@
 export type GetBooksQueryT = {
-  page?: string // Page number, default is 1
-  limit?: string // Number of items per page, default is 10
-  title?: string // Title filter
-  author?: string // Author filter
+  page?: string | null
+  limit?: string | null // Number of items per page, default is 10
   wordCount?: string // Word count filter
-  tags?: string // Tags filter (assume a comma-separated string)
+  keyword?: string // Keywords filter
+  type?: string // Search type: title, author, tags
 }
 
 export type PaginationT = {

@@ -12,8 +12,18 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { useDeleteChaptersByBookId } from '@/hooks/chapters/useDeleteChapterByBookId'
+import { cn } from '@/lib/utils'
 
-export default function DeleteButton ({ bookId }: { bookId: string }) {
+type DeleteButtonPropsT = {
+  bookId: string
+  className?: string
+  setMenuDialogOpen: (open: boolean) => void
+}
+export default function DeleteButton ({
+  bookId,
+  className,
+  setMenuDialogOpen
+}: DeleteButtonPropsT) {
   const {
     mutate: server_DeleteChapters,
     isPending,
@@ -22,13 +32,16 @@ export default function DeleteButton ({ bookId }: { bookId: string }) {
 
   const handleDeleteChaptersButton = async () => {
     server_DeleteChapters(bookId)
+    setMenuDialogOpen(false)
   }
 
   return (
     <>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant='destructive'>Delete Chapters</Button>
+          <Button variant='destructive' className={cn('', className)}>
+            Delete Chapters
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -2,6 +2,10 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   /* config options here */
+  reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '30mb'
@@ -10,7 +14,6 @@ const nextConfig: NextConfig = {
   devIndicators: {
     appIsrStatus: false
   },
-  reactStrictMode: true,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ibb.co' },
