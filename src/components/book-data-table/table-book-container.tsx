@@ -1,5 +1,4 @@
 'use client'
-import { useEffect } from 'react'
 import { columns } from './columns'
 import { DataTable } from './data-table'
 import { useGetBooks } from '@/hooks/books/useGetBooks'
@@ -11,15 +10,15 @@ export default function TableBookContainer () {
   const limit = queryParams.limit
   const page = queryParams.page
 
-  const { data, isPending, refetch } = useGetBooks({ limit, page })
-
-  useEffect(() => {
-    refetch()
-  }, [limit, page])
+  const { data, isPending } = useGetBooks({ limit, page })
 
   return (
     <div className='container mx-auto py-4'>
-      <DataTable columns={columns} data={data?.data ? data.data : []} />
+      <DataTable
+        columns={columns}
+        data={data?.data ? data.data : []}
+        isPending={isPending}
+      />
     </div>
   )
 }

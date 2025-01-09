@@ -1,19 +1,16 @@
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
-import { getBookById } from '@/server/books'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { isImageUrlValid } from '@/lib/isImageUrlValid'
 import { capitalizeSentences } from '@/lib/capitalizeSentence'
+import { BookT } from '@/types/books-type'
 
 interface CreateChapterDialogProps {
-  bookId: string
+  data: BookT | undefined
 }
-export default async function ContentCard ({
-  bookId
-}: CreateChapterDialogProps) {
-  const { data } = await getBookById(bookId)
 
+export default async function ContentCard ({ data }: CreateChapterDialogProps) {
   return (
     <>
       <Card className='prose-base'>

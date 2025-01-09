@@ -1,5 +1,6 @@
 import ContentCard from '@/components/book/book-content-card'
-import MenuDialog from '@/app/dashboard/books/[bookId]/menu-dialog'
+import MenuDialog from '@/components/(dashboard)/book/menu-dialog'
+import { getBookById } from '@/server/books'
 
 export default async function BookPage ({
   params
@@ -7,11 +8,12 @@ export default async function BookPage ({
   params: Promise<{ bookId: string }>
 }) {
   const { bookId } = await params
+  const { data } = await getBookById(bookId)
 
   return (
     <div className='p-4 relative'>
       <MenuDialog bookId={bookId} />
-      <ContentCard bookId={bookId} />
+      <ContentCard data={data} />
     </div>
   )
 }

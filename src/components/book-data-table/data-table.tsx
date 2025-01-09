@@ -18,15 +18,18 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { Skeleton } from '../ui/skeleton'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  isPending: boolean
 }
 
 export function DataTable<TData, TValue> ({
   columns,
-  data
+  data,
+  isPending
 }: DataTableProps<TData, TValue>) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -71,7 +74,29 @@ export function DataTable<TData, TValue> ({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isPending ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={idx}>
+                  {columns.map((column, colIdx) => (
+                    <TableCell
+                      key={colIdx}
+                      className='h-24'
+                      style={{
+                        width: column.maxSize || 'auto',
+                        maxWidth: column.maxSize || 'auto'
+                      }}
+                    >
+                      <Skeleton
+                        style={{
+                          width: column.header === 'Image' ? '150px' : '30%',
+                          height: column.header === 'Image' ? '200px' : '30px'
+                        }}
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
@@ -108,24 +133,18 @@ export function DataTable<TData, TValue> ({
         <Button
           variant='outline'
           size='sm'
-          //   onClick={() => table.previousPage()}
           onClick={() => {
-            // table.previousPage()
-            updatePageInURL(currentPage - 1) // Update the page in the URL
+            updatePageInURL(currentPage - 1)
           }}
-          //   disabled={!table.getCanPreviousPage()}
         >
           Previous
         </Button>
         <Button
           variant='outline'
           size='sm'
-          //   onClick={() => table.nextPage()}
           onClick={() => {
-            // table.nextPage()
-            updatePageInURL(currentPage + 1) // Update the page in the URL
+            updatePageInURL(currentPage + 1)
           }}
-          //   disabled={!table.getCanNextPage()}
         >
           Next
         </Button>

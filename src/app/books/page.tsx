@@ -1,6 +1,14 @@
 import BookShow from '@/components/book/book-show'
 import { getBooks } from '@/server/books'
 import PaginationComponent from '@/app/_components/Pagination'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: {
+    template: 'All Books',
+    default: `All Books`
+  }
+}
 
 export default async function BookHome ({
   searchParams

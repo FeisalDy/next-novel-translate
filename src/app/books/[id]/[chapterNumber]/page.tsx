@@ -1,24 +1,49 @@
-import { Button } from '@/components/ui/button'
 import { getChapter } from '@/server/chapters'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination'
+import { cache } from 'react'
 
-export default async function BookPage ({
+export async function getChapterWithCache ({
   params
 }: {
   params: Promise<{ chapterNumber: string; id: string }>
 }) {
   const { chapterNumber, id } = await params
-  const { data, message } = await getChapter(Number(id), Number(chapterNumber))
+  return cache(async () => {
+    const { data, message } = await getChapter(
+      Number(id),
+      Number(chapterNumber)
+    )
+    return { data, message }
+  })()
+}
+
+export async function generateMetadata ({
+  params
+}: {
+  params: Promise<{ chapterNumber: string; id: string }>
+}) {
+  const { data } = await getChapterWithCache({ params })
+
+  return {
+    title: data?.chapterTitle,
+    description: data?.content
+  }
+}
+
+export default async function ChapterPage ({
+  params
+}: {
+  params: Promise<{ chapterNumber: string; id: string }>
+}) {
+  const { data } = await getChapterWithCache({ params })
 
   if (!data) {
     redirect('/not-found')
